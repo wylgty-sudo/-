@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         .from('allowed_users')
         .select('*', { count: 'exact', head: true })
 
-      const isFirstUser = count === 0
+      const isFirstUser = count === 0 || count === null
       const isAdminEmail = user.email === process.env.ADMIN_EMAIL
 
       if (isFirstUser || isAdminEmail) {
