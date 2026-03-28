@@ -5,18 +5,14 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Personal Assistant',
-  description: 'Personal assistant web app',
+  title: '个人助理',
+  description: '你的待办、灵感与素材管理工具',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="zh">
+      <body className={`${inter.className} bg-warm min-h-screen`}>{children}</body>
     </html>
   )
 }
