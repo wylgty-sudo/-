@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/service'
 
 export async function GET(request: Request) {
@@ -11,17 +10,23 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=no_code`)
   }
 
-  const cookieStore = cookies()
+  // Build the response first, then set cookies directly on it
+  const successResponse = NextResponse.redirect(`${origin}/today`)
+  const failResponse = (msg: string) =>
+    NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(msg)}`)
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() { return cookieStore.getAll() },
+        getAll() {
+          return request.cookies.getAll()
+        },
         setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => {
+            successResponse.cookies.set(name, value, options ?? {})
+          })
         },
       },
     }
@@ -30,10 +35,10 @@ export async function GET(request: Request) {
   const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error || !user?.email) {
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error?.message ?? 'no_user')}`)
+    return failResponse(error?.message ?? 'no_user')
   }
 
-  // Auto-add first user or admin email
+  // Auto-add first user or admin email to allowed_users
   const { count } = await supabase
     .from('allowed_users')
     .select('*', { count: 'exact', head: true })
@@ -49,11 +54,5 @@ export async function GET(request: Request) {
     )
   }
 
-  // Build redirect response and explicitly copy all cookies onto it
-  const response = NextResponse.redirect(`${origin}/today`)
-  cookieStore.getAll().forEach(({ name, value }) => {
-    response.cookies.set(name, value, { path: '/', httpOnly: true, sameSite: 'lax', secure: true })
-  })
-
-  return response
+  return successResponse
 }
