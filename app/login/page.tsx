@@ -1,11 +1,12 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  console.log('LoginPage rendered')
   const supabase = createClient()
-  const [error, setError] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const [error, setError] = useState<string | null>(searchParams.get('error'))
 
   async function signInWithGoogle() {
     setError(null)
