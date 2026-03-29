@@ -15,7 +15,7 @@ export default function VoiceInput({ onTranscript }: Props) {
   function start() {
     const SpeechRecognitionAPI =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    const recognition = new SpeechRecognitionAPI() as SpeechRecognition
+    const recognition = new SpeechRecognitionAPI() as any
     recognition.lang = 'zh-CN'
     recognition.interimResults = false
     recognition.maxAlternatives = 1
