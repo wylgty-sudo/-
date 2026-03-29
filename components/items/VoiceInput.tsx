@@ -7,7 +7,7 @@ interface Props {
 
 export default function VoiceInput({ onTranscript }: Props) {
   const [listening, setListening] = useState(false)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<any>(null)
 
   const supported = typeof window !== 'undefined' &&
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
@@ -20,7 +20,7 @@ export default function VoiceInput({ onTranscript }: Props) {
     recognition.interimResults = false
     recognition.maxAlternatives = 1
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript
       onTranscript(transcript)
       setListening(false)
