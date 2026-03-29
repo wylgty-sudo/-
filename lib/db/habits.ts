@@ -1,3 +1,4 @@
+'use server'
 import { createClient } from '@/lib/supabase/server'
 import { calculateStreak } from '@/lib/utils/streak'
 import { todayStr } from '@/lib/utils/dates'
