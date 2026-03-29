@@ -8,11 +8,18 @@ export default function LoginPage() {
 
   async function signInWithGoogle() {
     setError(null)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-    if (error) setError(error.message)
+    console.log('signInWithGoogle called')
+    try {
+      const result = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      })
+      console.log('result:', JSON.stringify(result))
+      if (result.error) setError(result.error.message)
+    } catch (e: any) {
+      console.log('exception:', e)
+      setError(String(e))
+    }
   }
 
   return (
