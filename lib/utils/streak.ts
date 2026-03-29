@@ -7,7 +7,7 @@ import { parseISO, differenceInDays, format, subDays } from 'date-fns'
 export function calculateStreak(checkedDates: string[]): number {
   if (checkedDates.length === 0) return 0
 
-  const unique = [...new Set(checkedDates)].sort().reverse()
+  const unique = Array.from(new Set(checkedDates)).sort().reverse()
   const today = format(new Date(), 'yyyy-MM-dd')
   const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
 
