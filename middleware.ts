@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -38,7 +39,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  const { data: allowed } = await supabase
+  // Use service role to bypass RLS infinite recursion on allowed_users
+  const service = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+
+  const { data: allowed } = await service
     .from('allowed_users')
     .select('id')
     .eq('email', user.email!)
