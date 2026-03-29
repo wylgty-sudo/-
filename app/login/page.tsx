@@ -1,14 +1,18 @@
 'use client'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const supabase = createClient()
+  const [error, setError] = useState<string | null>(null)
 
   async function signInWithGoogle() {
-    await supabase.auth.signInWithOAuth({
+    setError(null)
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
+    if (error) setError(error.message)
   }
 
   return (
@@ -28,6 +32,7 @@ export default function LoginPage() {
           </svg>
           使用 Google 账号登录
         </button>
+        {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
       </div>
     </div>
   )
