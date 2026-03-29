@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  console.log('LoginPage rendered')
   const supabase = createClient()
   const [error, setError] = useState<string | null>(null)
 
