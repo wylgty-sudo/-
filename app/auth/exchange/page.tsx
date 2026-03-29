@@ -9,32 +9,26 @@ function ExchangeInner() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const code = searchParams.get('code')
     const error = searchParams.get('error')
-
     if (error) {
       router.replace('/login?error=' + encodeURIComponent(error))
       return
     }
-    if (!code) {
-      router.replace('/login?error=no_code')
-      return
-    }
 
-    async function exchange() {
-      const supabase = createClient()
-      const { data, error: err } = await supabase.auth.exchangeCodeForSession(code!)
-      if (err) {
-        router.replace('/login?error=' + encodeURIComponent(err.message))
-        return
-      }
-      if (data.user?.email) {
-        await setupUser(data.user.email, data.user.id)
-      }
-      router.replace('/today')
-    }
+    const supabase = createClient()
 
-    exchange()
+    // Let Supabase client handle the code exchange automatically via _initialize.
+    // We just listen for the result instead of calling exchangeCodeForSession manually.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user?.email) {
+        await setupUser(session.user.email, session.user.id)
+        router.replace('/today')
+      } else if (event === 'INITIAL_SESSION' && !session) {
+        router.replace('/login?error=auth_failed')
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   return (
