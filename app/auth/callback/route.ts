@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(incoming) {
+        setAll(incoming: { name: string; value: string; options?: any }[]) {
           incoming.forEach((c) => cookiesToSet.push(c))
         },
       },
