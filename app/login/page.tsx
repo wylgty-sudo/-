@@ -9,7 +9,6 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(searchParams.get('error'))
 
   async function signInWithGoogle() {
-    alert('按钮生效')
     setError(null)
     try {
       const result = await supabase.auth.signInWithOAuth({
