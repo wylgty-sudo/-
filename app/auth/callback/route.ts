@@ -10,10 +10,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=no_code`)
   }
 
-  // Build the response first, then set cookies directly on it
-  const successResponse = NextResponse.redirect(`${origin}/today`)
-  const failResponse = (msg: string) =>
-    NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(msg)}`)
+  const cookiesToSet: { name: string; value: string; options: any }[] = []
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,10 +20,8 @@ export async function GET(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            successResponse.cookies.set(name, value, options ?? {})
-          })
+        setAll(incoming) {
+          incoming.forEach((c) => cookiesToSet.push(c))
         },
       },
     }
@@ -35,10 +30,10 @@ export async function GET(request: NextRequest) {
   const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error || !user?.email) {
-    return failResponse(error?.message ?? 'no_user')
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error?.message ?? 'no_user')}`)
   }
 
-  // Auto-add first user or admin email to allowed_users
+  // Auto-add first user or admin email
   const { count } = await supabase
     .from('allowed_users')
     .select('*', { count: 'exact', head: true })
@@ -54,5 +49,19 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  return successResponse
+  // Return HTML page that sets cookies then redirects — avoids 302+Set-Cookie issues
+  const html = `<!DOCTYPE html><html><head>
+<script>window.location.replace('${origin}/today')</script>
+</head><body>正在跳转...</body></html>`
+
+  const response = new NextResponse(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html' },
+  })
+
+  cookiesToSet.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options ?? {})
+  })
+
+  return response
 }
